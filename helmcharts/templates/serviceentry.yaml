@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: akv-svcentry
+  namespace: {{ .Release.Namespace }}
+spec:
+  hosts:
+  - {{ .Values.app.akvName }}.vault.azure.net
+  exportTo:
+  - "."
+  ports:
+  - number: 443
+    name: https-akv
+    protocol: HTTPS
+  resolution: NONE
+  location: MESH_EXTERNAL

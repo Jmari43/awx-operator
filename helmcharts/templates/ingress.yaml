@@ -1,0 +1,48 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: {{ .Values.ingress.gatewayName }}
+  namespace: {{ .Values.app.labels.appcode }}-{{ .Values.app.labels.environment }}
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - hosts:
+    - esaxo.{{ .Values.app.containers.envCode }}.westus.aks.az.albertsons.com
+    port:
+      name: "http-{{ .Values.global.project }}"
+      number: 80
+      protocol: HTTP
+    tls:
+      httpsRedirect: true
+  - port:
+      name: "https-{{ .Values.global.project }}"
+      number: 443
+      protocol: HTTPS
+    hosts:
+    - esaxo.{{ .Values.app.containers.envCode }}.westus.aks.az.albertsons.com
+    tls:
+      credentialName: {{ .Values.app.ingress.certName }}
+      mode: SIMPLE  
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ .Values.ingress.virtualServiceName }}
+  namespace: {{ .Values.app.labels.appcode }}-{{ .Values.app.labels.environment }}
+spec:
+  hosts:
+  {{- toYaml .Values.app.ingress.host | nindent 2 }}
+  gateways:
+  - {{ .Values.ingress.gatewayName }}
+  http:
+
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        port:
+          number: 80
+        host: awx-operator-svc
+

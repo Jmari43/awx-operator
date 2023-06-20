@@ -1,0 +1,12 @@
+{
+  "application_properties": {
+    "APPCODE": "esaxo",
+    "APP_NAME": "awx-operator",
+    "REGISTRY_URL": "escoacrprod01.azurecr.io",
+    "NAMESPACE": "esaxo-dev1",
+    "HELM_NAME": "helmcharts",
+    "VALUES_PATH": "helmcharts/env/dev1/values.yaml",
+    "CONFIG_PATH": "env/dev1/configmap.yaml",
+    "KUBECONFIG": "${{ secrets.ESCO_AKSSHARED_NONPROD_WESTUS_CLUSTER_01 }}"
+    }
+}

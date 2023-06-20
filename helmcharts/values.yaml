@@ -1,0 +1,69 @@
+replicaCount: 1
+
+global:
+  autoscaleMin: 1
+  autoscaleMax: 3
+
+    
+  cpu:
+    targetAverageUtilization: 75
+  memory:
+    targetAverageUtilization: 75    
+  image:
+    repository: escoacrprod01.azurecr.io
+    pullPolicy: IfNotPresent
+  project: esaxo
+  
+  egressSvcEntry:
+    enabled: true
+    msftLoginUrl: login.microsoftonline.com
+
+  securityContext: 
+    enabled: true
+    runAsUser: 1999
+    runAsGroup: 1999
+    fsGroup: 1999
+    supplementalGroup: 1999
+  
+ingress:
+# Generate ingress manifests
+
+  enabled: true
+  # Only generates ingress manifests
+  only: false
+  gatewayName: esaxo-gateway
+  virtualServiceName: esaxo-vs
+  #certName: dxt1-ingress-certs
+  tls: []
+
+  resources: 
+    limits:
+     cpu: 500m
+     memory: 2000Mi
+    requests:
+     cpu: 250m
+     memory: 1000Mi
+
+image:
+  repository: escoacrprod01.azurecr.io
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "controller-manager"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000

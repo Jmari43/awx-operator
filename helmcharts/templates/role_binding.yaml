@@ -1,0 +1,27 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding # ClusterRoleBinding
+metadata:
+  name: awx-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: awx-manager-role
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "esaxo.serviceAccountName" . }} # awx-operator-controller-manager
+  #  name: {{ .Values.serviceAccount }}
+  #  name: controller-manager
+    namespace: '{{ .Release.Namespace }}'
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "esaxo.serviceAccountName" . }} # name: awx-operator
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "esaxo.serviceAccountName" . }} # awx-operator
+    namespace:  '{{ .Release.Namespace }}' #default
+roleRef:
+  kind: ClusterRole
+  name: {{ include "esaxo.serviceAccountName" . }} # awx-operator
+  apiGroup: rbac.authorization.k8s.io

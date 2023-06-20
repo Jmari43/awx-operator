@@ -1,0 +1,122 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: awx-resource-reader
+rules:
+- apiGroups:
+  - awx.ansible.com
+  resources:
+  - awxs
+  verbs:
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding # RoleBinding
+metadata:
+  name: awx-reader-binding
+  namespace: {{ .Release.Namespace }} # Replace with the appropriate namespace
+subjects:
+- kind: ServiceAccount
+  #name: {{ .Values.serviceAccount }}
+  name: {{ include "esaxo.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: awx-resource-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: awx-reader-role-binding
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: awx-resource-reader
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: system:serviceaccounts
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: awx-operator-access
+rules:
+- apiGroups:
+  - awx.ansible.com
+  resources:
+  - awxs
+  verbs:
+  - '*'
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: awx-operator-access-binding
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: esaxo-dev1
+roleRef:
+  kind: ClusterRole
+  name: awx-operator-access
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: awxbackup-reader
+rules:
+- apiGroups:
+  - awx.ansible.com
+  resources:
+  - awxbackups
+  verbs:
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: awxbackup-reader-binding
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: esaxo-dev1
+roleRef:
+  kind: ClusterRole
+  name: awxbackup-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: awxrestore-reader
+rules:
+- apiGroups:
+  - awx.ansible.com
+  resources:
+  - awxrestores
+  verbs:
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: awxrestore-reader-binding
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: esaxo-dev1
+roleRef:
+  kind: ClusterRole
+  name: awxrestore-reader
+  apiGroup: rbac.authorization.k8s.io
+
+

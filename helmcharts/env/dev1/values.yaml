@@ -1,0 +1,102 @@
+AWX:
+  # enable use of awx-deploy template
+  enabled: false
+  name: awx
+  #spec:
+  #  admin_user: admin
+
+# configurations for external postgres instance
+postgres:
+  enabled: true
+  host: esaxo-awxp-dev-westus-psql-01.postgres.database.azure.com
+  port: 5432
+  dbName: awxp
+  username: awxpadmin
+  # for secret management, pass in the password independently of this file
+  # at the command line, use --set AWX.postgres.password
+  # password: Unset
+  sslmode: require # set this for external DB
+  type: unmanaged
+
+app:
+  configfile: "env/dev1/configmap.yaml" # check this
+  akvName: esaxo-dev-wu-kv-01
+  akvAbsDbPassword: awxpadmin # this is db user awxpadmin
+  akvawxadminpassword: awxappadmin # this awx admin user
+
+#  postgres:
+#    enable: true
+  
+  micrometer:
+    enabled: false
+    
+#AwxOperator-deployment(labels)
+  labels:
+    app: awx-operator
+    costcenter: "72105"
+    portfolio: infrastructureservices
+    drcategory: dr3
+    appcode: esaxo
+    environment: dev1
+    project: esaxo
+
+  containers:
+    image: esaxo/awx-operator
+    tag: 2.0.0
+    envCode: dev1
+    port: 6789 ### check this later
+    env:
+    - name: akvAbsDbPassword
+      value: "awxpadmin"
+
+  resources:
+    limits:
+      cpu: 1350m
+      memory: 750Mi
+    requests:
+      cpu: 850m
+      memory: 450Mi
+
+  networkPolicy:
+    enabled: false
+
+#  egressSvcEntry:   # Do I need this section to refer to DB?
+#    enabled: true
+#    postgres: #postgressql
+#      enabled: true
+#      host: esaxo-awxp-dev-westus-psql-01.postgres.database.azure.com #esaxo-awxp-dev-westus-psql-01.postgres.database.azure.com
+#      port: 5432
+#      ip: 172.26.231.52
+
+  ingress:
+    type: kubernetes.io/tls
+    chainOrder: ensureserverfirst
+    host:
+      - "esaxo.dev1.westus.aks.az.albertsons.com" # DNS, esaxo.dev1.westus.aks.az - 172.25.48.98?
+    destinationRuleName: esaxo-dr # dont have one, just template
+    certName: esaxo-ingress-certs-dev1  # esaxo-dev1-westus-aks-az-albertsons-com
+    portNumber: 80 # this is https?, keep https in ingress template
+    http: 
+    - match:
+      - uri:
+          prefix: / # dont think I have a prefix give for DNS
+    istio:
+      namespace: istio-system
+      akvSecrets: esaxo-dev-wu-kv-01
+  
+service:
+  name: esaxo
+  type: ClusterIP
+  port: 443
+  targetPort: 6789 # check this
+  portName: https-esaxo
+  labels:
+    app: awx-operator
+    project: esaxo
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80

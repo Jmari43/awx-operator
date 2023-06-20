@@ -1,0 +1,96 @@
+{{- if .Values.app.networkPolicy.enabled }}
+# This NetworkPolicy allows pods egress/ingress access to/from
+# all pods in the app namespace.
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: allow-ingress-to-webui
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- toYaml .Values.global.appLabels.webuiLabels | nindent 6 }}
+  policyTypes:
+  - Ingress  
+  ingress: 
+  - from:
+    - podSelector:
+        matchLabels:
+          {{- toYaml .Values.global.appLabels.apacheLabels | nindent 10 }}
+---
+# This NetworkPolicy allows pods ingress access to/from
+# all pods in the app namespace.
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: allow-ingress-to-restapi1
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- toYaml .Values.global.appLabels.restapiLabels | nindent 6 }}
+  policyTypes:
+  - Ingress  
+  ingress: 
+  - from:
+    - podSelector:
+        matchLabels:
+          {{- toYaml .Values.global.appLabels.apacheLabels | nindent 10 }}
+---
+# This NetworkPolicy allows pods egress/ingress access to/from
+# all pods in the app namespace.
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: allow-ingress-to-restapi2
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- toYaml .Values.global.appLabels.restapi2Labels | nindent 6 }}
+  policyTypes:
+  - Ingress  
+  ingress: 
+  - from:
+    - podSelector:
+        matchLabels:
+          {{- toYaml .Values.global.appLabels.apacheLabels | nindent 10 }}
+---
+# This NetworkPolicy allows pods egress/ingress access to/from
+# all pods in the app namespace.
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: allow-ingress-from-web-to-restapi
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- toYaml .Values.global.appLabels.restapiLabels | nindent 6 }}
+  policyTypes:
+  - Ingress  
+  ingress: 
+  - from:
+    - podSelector:
+        matchLabels:
+          {{- toYaml .Values.global.appLabels.webuiLabels | nindent 10 }}
+---
+# This NetworkPolicy allows pods egress/ingress access to/from
+# all pods in the app namespace.
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: allow-ingress-from-web-to-restapi2
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- toYaml .Values.global.appLabels.restapi2Labels | nindent 6 }}
+  policyTypes:
+  - Ingress  
+  ingress: 
+  - from:
+    - podSelector:
+        matchLabels:
+          {{- toYaml .Values.global.appLabels.webuiLabels | nindent 10 }}
+{{- end }}

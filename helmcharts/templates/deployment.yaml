@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deployment
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{- include "esaxo.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.app.replicaCount }}
+  selector:
+    matchLabels:
+      {{- toYaml .Values.app.labels | nindent 6 }}
+      {{- if .Values.app.micrometer.enable }}
+      apm : micrometer
+      {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- toYaml .Values.app.labels | nindent 8 }}
+        {{- if .Values.app.micrometer.enable }}
+        apm: micrometer
+        {{- end }}
+      annotations:
+        {{- if .Values.app.micrometer.enable }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: {{ .Values.app.containers.prometheusPath }}
+        prometheus.istio.io/merge-metrics: "false"
+        {{- end }}
+        sidecar.istio.io/rewriteAppHTTPProbers: "false"  
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ .Release.Name }}
+        image: "{{ .Values.global.image.repository }}/{{ .Values.app.containers.image }}"
+        imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+        # volumeMounts: for future purposes
+        ports:
+        - name: {{ .Values.app.containers.portName | default "http" }}
+          containerPort: {{ .Values.app.containers.port }}
+          protocol: TCP
+        resources:
+          {{- toYaml .Values.app.resources | nindent 12 }}
+        env:
+        {{- with .Values.app.containers.env }}
+            {{- toYaml . | nindent 12 }}
+        {{- end }}
+        envFrom:
+        - configMapRef:
+            name: {{ .Release.Name }}-configmap
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.app.containers.readinessEndpoint }}
+            port: {{ .Values.app.containers.port }}
+          initialDelaySeconds: 120
+          timeoutSeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 20
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.app.containers.livenessEndpoint }}
+            port: {{ .Values.app.containers.port }}
+          initialDelaySeconds: 120
+          timeoutSeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 20
+      securityContext:
+        runAsUser: {{ .Values.global.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.global.securityContext.runAsGroup }} 
+        fsGroup: {{ .Values.global.securityContext.fsGroup }}
+        supplementalGroups:
+          - {{ .Values.global.securityContext.supplementalGroup }} # this refers to global values.yaml
+      {{- with .Values.global.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.global.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.global.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
